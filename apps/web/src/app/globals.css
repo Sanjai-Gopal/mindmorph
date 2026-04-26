@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 98%;
+  --primary: 263 70% 58%;
+  --secondary: 191 90% 45%;
+  --muted: 240 6% 16%;
+  --accent: 339 90% 60%;
+  --card: 240 6% 12%;
+  --border: 240 6% 20%;
+}
+
+html,
+body {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
