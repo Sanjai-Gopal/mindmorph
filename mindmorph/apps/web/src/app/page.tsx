@@ -13,14 +13,18 @@ const LandingBelowFold = dynamic(() => import("@/components/shared/LandingBelowF
 
 export default function LandingPage() {
   const [mouse, setMouse] = useState({ x: 50, y: 30 });
+  const seeded = (seed: number) => {
+    const x = Math.sin(seed * 999) * 10000;
+    return x - Math.floor(x);
+  };
   const particles = useMemo(
     () =>
       Array.from({ length: 28 }, (_, idx) => ({
         id: idx,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: Math.random() * 4 + 2,
-        delay: Math.random() * 1.5
+        left: seeded(idx + 1) * 100,
+        top: seeded(idx + 101) * 100,
+        size: seeded(idx + 201) * 4 + 2,
+        delay: seeded(idx + 301) * 1.5
       })),
     []
   );
