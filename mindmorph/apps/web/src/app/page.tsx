@@ -13,6 +13,7 @@ const LandingBelowFold = dynamic(() => import("@/components/shared/LandingBelowF
 
 export default function LandingPage() {
   const [mouse, setMouse] = useState({ x: 50, y: 30 });
+  const [isNavigating, setIsNavigating] = useState(false);
   const seeded = (seed: number) => {
     const x = Math.sin(seed * 999) * 10000;
     return x - Math.floor(x);
@@ -41,56 +42,57 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="relative scroll-smooth overflow-hidden bg-[#07070f] text-white">
-      <section className="relative flex min-h-screen items-center justify-center px-6 md:px-12">
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-80"
+    <main className="relative scroll-smooth overflow-hidden bg-[#0a0a0f] text-white">
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-80"
+        style={{
+          background:
+            "radial-gradient(circle at 15% 20%, rgba(168,85,247,0.30), transparent 40%), radial-gradient(circle at 80% 25%, rgba(34,211,238,0.24), transparent 38%), radial-gradient(circle at 40% 80%, rgba(244,63,94,0.18), transparent 45%)"
+        }}
+        animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+      />
+
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at ${mouse.x}% ${mouse.y}%, rgba(34,211,238,0.22), transparent 24%)`
+        }}
+      />
+
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          className="pointer-events-none absolute rounded-full bg-cyan-300/70"
           style={{
-            background:
-              "radial-gradient(circle at 15% 20%, rgba(168,85,247,0.30), transparent 40%), radial-gradient(circle at 80% 25%, rgba(34,211,238,0.24), transparent 38%), radial-gradient(circle at 40% 80%, rgba(244,63,94,0.18), transparent 45%)"
+            width: p.size,
+            height: p.size,
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            willChange: "transform"
           }}
-          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+          animate={{ y: [0, -20, 0], opacity: [0.2, 0.9, 0.2] }}
+          transition={{ duration: 3 + p.delay, repeat: Infinity, ease: "easeInOut" }}
         />
+      ))}
 
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `radial-gradient(circle at ${mouse.x}% ${mouse.y}%, rgba(34,211,238,0.22), transparent 24%)`
-          }}
-        />
+      <motion.div
+        animate={{ rotate: [0, 12, 0] }}
+        transition={{ duration: 7, repeat: Infinity }}
+        className="absolute left-[8%] top-[20%] hidden h-20 w-20 rounded-2xl border border-cyan-300/30 bg-cyan-400/10 md:block"
+        style={{ transform: "translate3d(0,0,0)", willChange: "transform" }}
+      />
+      <motion.div
+        animate={{ rotate: [0, -9, 0] }}
+        transition={{ duration: 6, repeat: Infinity }}
+        className="absolute right-[10%] top-[30%] hidden h-24 w-24 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 md:block"
+        style={{ transform: "translate3d(0,0,0)", willChange: "transform" }}
+      />
 
-        {particles.map((p) => (
-          <motion.span
-            key={p.id}
-            className="pointer-events-none absolute rounded-full bg-cyan-300/70"
-            style={{
-              width: p.size,
-              height: p.size,
-              left: `${p.left}%`,
-              top: `${p.top}%`,
-              willChange: "transform"
-            }}
-            animate={{ y: [0, -20, 0], opacity: [0.2, 0.9, 0.2] }}
-            transition={{ duration: 3 + p.delay, repeat: Infinity, ease: "easeInOut" }}
-          />
-        ))}
-
-        <motion.div
-          animate={{ rotate: [0, 12, 0] }}
-          transition={{ duration: 7, repeat: Infinity }}
-          className="absolute left-[8%] top-[20%] hidden h-20 w-20 rounded-2xl border border-cyan-300/30 bg-cyan-400/10 md:block"
-          style={{ transform: "translate3d(0,0,0)", willChange: "transform" }}
-        />
-        <motion.div
-          animate={{ rotate: [0, -9, 0] }}
-          transition={{ duration: 6, repeat: Infinity }}
-          className="absolute right-[10%] top-[30%] hidden h-24 w-24 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 md:block"
-          style={{ transform: "translate3d(0,0,0)", willChange: "transform" }}
-        />
-
-        <div className="relative z-10 mx-auto max-w-5xl text-center">
+      <div className="relative z-10">
+        <section className="relative flex items-center justify-center px-6 py-12 md:px-12 md:py-16">
+          <div className="relative z-10 mx-auto max-w-5xl text-center">
           <motion.h1
             initial={false}
             animate={{ opacity: 1, y: 0 }}
@@ -100,17 +102,34 @@ export default function LandingPage() {
               Your Brain Deserves Better Than Boring
             </span>
           </motion.h1>
-          <p className="mx-auto mt-6 max-w-3xl text-base text-gray-200 md:text-xl">
+          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-200 md:text-lg">
             AI that understands when you&apos;re struggling and transforms complex topics into your
             language.
           </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-7 py-3 font-bold text-black transition hover:shadow-[0_0_30px_rgba(34,211,238,0.8)]"
+              prefetch={true}
+              onClick={() => setIsNavigating(true)}
+              className={`inline-flex items-center gap-2 rounded-full bg-cyan-300 px-7 py-3 font-bold text-black transition hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] ${
+                isNavigating ? "opacity-75" : ""
+              }`}
             >
-              Start Learning Free
-              <ArrowRight className="h-4 w-4" />
+              {isNavigating ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="h-4 w-4 border-2 border-black border-t-transparent rounded-full"
+                  />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Start Learning Free
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Link>
             <a
               href="#how-it-works"
@@ -132,6 +151,7 @@ export default function LandingPage() {
       </section>
 
       <LandingBelowFold />
+      </div>
       <style jsx global>{`
         @keyframes gradient {
           0%,

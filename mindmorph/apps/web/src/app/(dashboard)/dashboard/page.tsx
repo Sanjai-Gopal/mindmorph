@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [hasData, setHasData] = useState(true);
   const [activeHeatmapDate, setActiveHeatmapDate] = useState<string | null>(null);
   const [activeWeeklyDay, setActiveWeeklyDay] = useState<string | null>(null);
+  const [dbUnavailable, setDbUnavailable] = useState(false);
   const { studySessionEvents, achievementEvents } = useRealtime();
 
   const supabase = useMemo(() => {
@@ -67,6 +68,7 @@ export default function DashboardPage() {
   }, []);
 
   const run = async () => {
+    if (dbUnavailable) return;
     setLoading(true);
     setError(null);
     try {
@@ -98,6 +100,16 @@ export default function DashboardPage() {
           .gte("created_at", since)
       ]);
 
+      const hasNotFoundError = [profileRes.error, sessionsRes.error, transformsRes.error].some(
+        (err) => err?.code === "PGRST205" || err?.message?.includes("404")
+      );
+      if (hasNotFoundError) {
+        setDbUnavailable(true);
+        setHasData(false);
+        setError("Supabase tables were not found. Run database migrations and verify REST table exposure.");
+        return;
+      }
+
       const sessionRows = (sessionsRes.data ?? []) as Session[];
       setSessions(sessionRows);
       setTransformCount(transformsRes.count ?? 0);
@@ -113,13 +125,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     void run();
-  }, [supabase, range]);
+  }, [supabase, range, dbUnavailable]);
 
   useEffect(() => {
-    if (studySessionEvents.length > 0 || achievementEvents.length > 0) {
+    if (!dbUnavailable && (studySessionEvents.length > 0 || achievementEvents.length > 0)) {
       void run();
     }
-  }, [studySessionEvents.length, achievementEvents.length]);
+  }, [studySessionEvents.length, achievementEvents.length, dbUnavailable]);
 
   const totalHours = sessions.reduce((acc, s) => acc + (s.duration_seconds ?? 0) / 3600, 0);
   const todayHours = sessions

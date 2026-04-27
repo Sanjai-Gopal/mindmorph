@@ -9,17 +9,49 @@ type CookieToSet = {
 
 const protectedPaths = ["/dashboard", "/study", "/transform", "/analytics", "/profile", "/onboarding"];
 const authPaths = ["/login", "/register"];
+const isDev = process.env.NODE_ENV !== "production";
+
+function getCsp(nonce: string) {
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com"
+    : `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com`;
+
+  return [
+    "default-src 'self'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self' https: wss:",
+    "font-src 'self' data:",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join("; ");
+}
+
+function withSecurityHeaders(response: NextResponse, nonce: string) {
+  response.headers.set("Content-Security-Policy", getCsp(nonce));
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("x-nonce", nonce);
+  return response;
+}
 
 export async function updateSession(request: NextRequest) {
+  const nonce = crypto.randomUUID().replace(/-/g, "");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers
+      headers: requestHeaders
     }
   });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) return response;
+  if (!supabaseUrl || !supabaseAnonKey) return withSecurityHeaders(response, nonce);
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -46,12 +78,12 @@ export async function updateSession(request: NextRequest) {
   if (isProtectedPath && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return withSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
 
   if (isAuthPath && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", request.url)), nonce);
   }
 
-  return response;
+  return withSecurityHeaders(response, nonce);
 }

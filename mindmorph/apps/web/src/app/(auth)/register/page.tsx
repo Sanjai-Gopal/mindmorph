@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -29,16 +29,15 @@ const registerSchema = z
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-function getPasswordStrength(password: string) {
-  let score = 0;
-  if (password.length >= 8) score += 1;
-  if (/[A-Z]/.test(password)) score += 1;
-  if (/[0-9]/.test(password)) score += 1;
-  if (/[^A-Za-z0-9]/.test(password)) score += 1;
-  return score;
-}
-
 export default function RegisterPage() {
+  const getPasswordStrength = useCallback((password: string) => {
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    return score;
+  }, []);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -54,7 +53,7 @@ export default function RegisterPage() {
   });
 
   const password = watch("password", "");
-  const strength = useMemo(() => getPasswordStrength(password), [password]);
+  const strength = useMemo(() => getPasswordStrength(password), [password, getPasswordStrength]);
 
   const onSubmit = async (values: RegisterFormValues) => {
     setLoading(true);
